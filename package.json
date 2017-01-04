@@ -1,0 +1,22 @@
+{
+  "name": "sha384sum",
+  "version": "0.0.1",
+  "description": "CLI tool for computing sha384 sum of a file or stdin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "CLI tool for computing sha384 sum of a file or stdin"
+  },
+  "keywords": [
+    "cli",
+    "sha",
+    "sum",
+    "crypto",
+    "sha384"
+  ],
+  "author": "Way, No <noway@2ch.hk>",
+  "license": "MIT"
+}
