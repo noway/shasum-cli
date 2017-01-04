@@ -7,18 +7,22 @@
 var program = require('commander');
 var Promise = require('bluebird');
 var _ = require('lodash');
+var path = require('path');
+
+var progname = path.basename(process.argv[1]);
+var hashname = progname.match(/^([a-z0-9]+)sum$/i)[1].toLowerCase();
 
 program
   .version('0.0.1')
   .usage('[options] <file ...>')
 
   .option('-b, --binary', 'read in binary mode')
-  .option('-c, --check', 'read SHA384 sums from the FILEs and check them')
+  .option('-c, --check', 'read '+hashname.toUpperCase()+' sums from the FILEs and check them')
   .option('--tag', 'create a BSD-style checksum')
   .option('-t, --text ', 'read in text mode (default)')
 
   .option('--base64', 'Output hash in base64')
-  .option('-s, --sri', 'SRI output format for hash (sha384- prefix and base64)')
+  .option('-s, --sri', 'SRI output format for hash ('+hashname+'- prefix and base64)')
 
   .option('--ignore-missing', 'don\'t fail or report status for missing files')
   .option('--quiet', 'don\'t print OK for each successfully verified file')
@@ -30,20 +34,20 @@ program
 
 
 var fs = Promise.promisifyAll(require("fs"));
-var SHA384 = require("crypto-js/sha384");
+var hashdata = require("crypto-js/"+hashname);
 var CryptoJS = require('crypto-js');
 
 function hashFile(filename, data, params) {
   var hash;
   if (params.base64) {
-    hash = CryptoJS.enc.Base64.stringify(SHA384(data))
+    hash = CryptoJS.enc.Base64.stringify(hashdata(data))
   }
   else {
-    hash = SHA384(data).toString()
+    hash = hashdata(data).toString()
   }
 
   if (params.sri) {
-    hash = 'sha384-' + hash
+    hash = hashname + '-' + hash
   }
 
   return hash;
@@ -64,9 +68,9 @@ function checkFromFile(filename, data, params) {
   var line = lines.shift();
   var match, file, hash;
 
-  if (match = line.match(/^SHA384 \(([^ ]*)\) = ([^ ]*)$/)) {
-    file = match[1];
-    hash = match[2];
+  if (match = line.match(/^([a-z0-9]+) \(([^ ]*)\) = ([^ ]*)$/) && match[1] == hashname.toUpperCase()) {
+    file = match[2];
+    hash = match[3];
   }
   else if (match = line.match(/^([^ ]*)  ([^ ]*)$/)) {
     hash = match[1];
@@ -108,7 +112,7 @@ function processFile(filename, params) {
 
     if (params.isPrint) {
       if (program.tag) {
-        console.log("SHA384 (" +filename+ ") = " +hash)
+        console.log(hashname.toUpperCase()+" (" +filename+ ") = " +hash)
       }
       else {
         console.log(hash +"  "+ filename)
