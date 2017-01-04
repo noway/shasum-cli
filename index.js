@@ -40,10 +40,10 @@ var CryptoJS = require('crypto-js');
 function hashFile(filename, data, params) {
   var hash;
   if (params.base64) {
-    hash = CryptoJS.enc.Base64.stringify(hashdata(data))
+    hash = CryptoJS.enc.Base64.stringify(hashdata(data.toString()))
   }
   else {
-    hash = hashdata(data).toString()
+    hash = hashdata(data.toString()).toString()
   }
 
   if (params.sri) {
@@ -96,7 +96,7 @@ function checkFromFile(filename, data, params) {
 
 function processFile(filename, params) {
   var opts = { encoding: 'utf8' };
-  if (program.isBinary) {
+  if (params.isBinary) {
     opts = undefined;
   }
 
@@ -115,7 +115,8 @@ function processFile(filename, params) {
         console.log(hashname.toUpperCase()+" (" +filename+ ") = " +hash)
       }
       else {
-        console.log(hash +"  "+ filename)
+        var mode = params.isBinary ? '*' : ' ';
+        console.log(hash +" " +mode+ filename)
       } 
     }
 
