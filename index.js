@@ -32,6 +32,17 @@ program
 
   .parse(process.argv);
 
+var inputChunks = [],
+    stdin = new Promise(function (resolve, reject) {   
+      process.stdin.resume();
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', function (chunk) {
+        inputChunks.push(chunk);
+      });
+      process.stdin.on('end', function () {
+        resolve(inputChunks.join());
+      });
+    });
 
 var fs = Promise.promisifyAll(require("fs"));
 var hashdata = require("crypto-js/"+hashname);
@@ -100,7 +111,15 @@ function processFile(filename, params) {
     opts = undefined;
   }
 
-  return fs.readFileAsync(filename, opts).then(function (data) {
+  var filePromise;
+  if (filename != '-') {
+    filePromise = fs.readFileAsync(filename, opts);
+  }
+  else {
+    filePromise = stdin;
+  }
+
+  return filePromise.then(function (data) {
     if (params.isCheckFromFile) {
       return checkFromFile(filename, data, params);
     }
@@ -148,6 +167,7 @@ function processFile(filename, params) {
 
 function fileChain() {
   if (!program.args.length) {
+    process.exit(0);
     return;
   }
   var filename = program.args.shift();
@@ -161,4 +181,7 @@ function fileChain() {
   });
 }
 
+if (!program.args.length) {
+  program.args = ['-'];
+}
 fileChain();
