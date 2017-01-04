@@ -19,7 +19,7 @@ program
 
   .option('--base64', 'Output hash in base64')
   .option('-s, --sri', 'SRI output format for hash (sha384- prefix and base64)')
-  
+
   .parse(process.argv);
 
 
@@ -43,13 +43,18 @@ function hashFile(filename, data, params) {
   return hash;
 }
 
-function checkFromFile(filename, data) {
-  var lines = data.split("\n")
-  var line = lines.shift();
-  if (line == undefined || line == "") {
+function checkFromFile(filename, data, params) {
+  var lines = data.split("\n").filter(function(e){return e}); 
+  var bad_count = params.bad_count || 0;
+  if (!lines.length) {
+    if (bad_count > 0) {
+      console.log(program.name()+": WARNING: "+bad_count+" computed checksum did NOT match");
+    }
+    process.exit(bad_count)
     return;
-  }
+  }  
 
+  var line = lines.shift();
   var match, file, hash;
 
   if (match = line.match(/^SHA384 \(([^ ]*)\) = ([^ ]*)$/)) {
@@ -62,13 +67,14 @@ function checkFromFile(filename, data) {
   }
   else {
     console.log("WARN: couldn't parse line");
+    return checkFromFile(filename, lines.join("\n"), params);
   }
 
   return processFile(file, {
     isBinary: program.binary && program.text == undefined, 
     checkToHash: hash
-  }).then(function() {
-    return checkFromFile(filename, lines.join("\n"));
+  }).then(function(failed_count) {
+    return checkFromFile(filename, lines.join("\n"), _.extend(params, { bad_count: bad_count + failed_count }));
   });
 }
 
@@ -99,9 +105,11 @@ function processFile(filename, params) {
     if (params.checkToHash) {
       if (params.checkToHash == hash) {
         console.log(filename + ": OK")
+        return 0;
       }
       else {
         console.log(filename + ": FAILED")
+        return 1;
       }
     }
 
@@ -109,10 +117,10 @@ function processFile(filename, params) {
 }
 
 function fileChain() {
-  var filename = program.args.shift();
-  if (filename == undefined) {
+  if (!program.args.length) {
     return;
   }
+  var filename = program.args.shift();
 
   return processFile(filename, {
     isBinary: program.binary && program.text == undefined, 
