@@ -32,17 +32,17 @@ program
 
   .parse(process.argv);
 
-var inputChunks = [],
-    stdin = new Promise(function (resolve, reject) {   
-      process.stdin.resume();
-      process.stdin.setEncoding('utf8');
-      process.stdin.on('data', function (chunk) {
-        inputChunks.push(chunk);
-      });
-      process.stdin.on('end', function () {
-        resolve(inputChunks.join());
-      });
-    });
+var stdin = new Promise(function (resolve, reject) {   
+  var inputChunks = [];
+  process.stdin.resume();
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', function (chunk) {
+    inputChunks.push(chunk.toString());
+  });
+  process.stdin.on('end', function () {
+    resolve(inputChunks.join(""));
+  });
+});
 
 var fs = Promise.promisifyAll(require("fs"));
 var hashdata = require("crypto-js/"+hashname);
