@@ -15,7 +15,7 @@
     "sha",
     "sum",
     "crypto",
-    "shasum-cli"
+    "shasum-cli",
     "sha256", "sha384", "sha512",
     "sha256sum", "sha384sum", "sha512sum",
     "sri", "security", "integrity", "Subresource Integrity", "SRI", "sri-toolbox"
